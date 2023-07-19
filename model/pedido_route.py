@@ -187,18 +187,15 @@ def pedidoIns(direccion, total, idcliente, cursor):
         Una lista que contiene el ID del pedido y  éxito.
     """
     exito = True
-    print("pedido")
     try:
         sql = "SELECT crearPedido(%s, %s, %s)"
         print("pedido")
         cursor.execute(sql, [direccion, total, idcliente])
         print("pedido")
         resultado = cursor.fetchone()
-        print("pedido")
+        print("pedido\n", resultado)
     except Exception as ex:
         resultado = f"Error: {ex.__str__()}"
         exito = False
     print("pedido")
     return [resultado[0], exito]
-
-# pasos para el correo (pendiente)

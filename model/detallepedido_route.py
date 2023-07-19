@@ -84,18 +84,19 @@ def detalleInsert():
     exito = False
     try:
         sql = "INSERT INTO detallepedido(CodPedido, CodigoPlatillo, Cantidad, SubTotal) VALUES (%s, %s, %s, %s)"
-        print("hola")
         direccion = request.json.get("direccion")
         total = request.json.get("total")
         idcliente = request.json.get("idcliente")
         carrito = request.json.get("carrito")
-        print("hola")
         conn = mysql.connect()
         cursor = conn.cursor()
+        idpedido = []
         idpedido = pedidoIns(direccion, total, idcliente, cursor)
-        print(idpedido)
+        print("IDPEDIDO: ",idpedido[0])
+        print("IDPEDIDO: ",idpedido)
+        print("SERAPE: ",idpedido[1])
+        print("DATOS: ", request.json)
         if(idpedido[1]):
-            print("hola")
             for element in carrito:
                 datos = []
                 platillo = obtenerPlatillo(element[0])
@@ -105,16 +106,12 @@ def detalleInsert():
                 datos.append(element[1]*platillo[0]["Precio"])
                 cursor.execute(sql, datos)
             conn.commit()
-            print("hola")
             mensaje = "Pedido registrado correctamente"
             exito = True
-            print("hola")
         else:
             mensaje = "Error al registrar pedido"
         cursor.close()
-        print("hola")
     except Exception as ex:
         traceback.print_exc()
         mensaje = f"Error: {ex.__str__()}" 
-    print("hola")
     return jsonify({"resultado":mensaje, "exito": exito})
