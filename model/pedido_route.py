@@ -1,6 +1,9 @@
 from flask import Blueprint, jsonify
 from util.Connection import Connection
-import datetime, locale, qrcode, base64
+import datetime
+import locale
+import qrcode
+import base64
 from io import BytesIO
 
 
@@ -75,7 +78,6 @@ def datosPDF(codCliente):
         if len(arreglo) == 0:
             resultado = "No hay datos en la tabla Cliente"
         else:
-
             resultado["detalles"] = []
             for fila in arreglo:
                 DatosPDF = {
@@ -90,7 +92,6 @@ def datosPDF(codCliente):
 
             cursor.execute(sql2, codCliente)
             total = cursor.fetchone()
-
             horas = str(total[3])
             horas2 = horas.split(':')[0]
             minutos = str(total[3])
@@ -103,7 +104,6 @@ def datosPDF(codCliente):
             numBoleta = f"{lafecha}{horas2}{minutos2}{segundos2}"
             codigo_qr_datos = f"Boleta: {numBoleta}\nMonto: {total[0]}\nFecha: {fechaQR}\nCodPedido: {codCliente}"
             codigo_qr_base64 = generar_codigo_qr(codigo_qr_datos)
-
 
             resultado["codigoQR"] = codigo_qr_base64
             resultado["total"] = [total[0], total[1], lafecha2, numBoleta, rucEmpresa, direccionEmpresa]
@@ -162,10 +162,8 @@ def generar_codigo_qr(datos):
         qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=10, border=4)
         qr.add_data(datos)
         qr.make(fit=True)
-
         # Generar una imagen del código QR
         qr_image = qr.make_image(fill_color="black", back_color="white")
-
         buffered = BytesIO()
         qr_image.save(buffered, format="PNG")
         qr_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
@@ -189,13 +187,9 @@ def pedidoIns(direccion, total, idcliente, cursor):
     exito = True
     try:
         sql = "SELECT crearPedido(%s, %s, %s)"
-        print("pedido")
         cursor.execute(sql, [direccion, total, idcliente])
-        print("pedido")
         resultado = cursor.fetchone()
-        print("pedido\n", resultado)
     except Exception as ex:
         resultado = f"Error: {ex.__str__()}"
         exito = False
-    print("pedido")
     return [resultado[0], exito]
