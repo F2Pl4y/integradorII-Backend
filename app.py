@@ -42,4 +42,4 @@ def pagina_no_encontrada(error):
 #     app.run(debug = True)
 if __name__ == "__main__":
     app.register_error_handler(404, pagina_no_encontrada)
-    app.run(debug=True, host='38.25.17.172', port=5000)
+    app.run(debug=True)
