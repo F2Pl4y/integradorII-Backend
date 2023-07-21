@@ -31,6 +31,9 @@ app.config['JWT_TOKEN_LOCATION'] = ['cookies']
 # Desactivar la protección CSRF para las cookies JWT
 app.config['JWT_COOKIE_CSRF_PROTECT'] = False
 
+# Configurar el host y el puerto para que la aplicación escuche en todas las interfaces
+app.run(host='0.0.0.0', port=5000)
+
 def pagina_no_encontrada(error):
     return "<h1>Método no encontrado</h1>"
 
