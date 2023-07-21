@@ -16,7 +16,7 @@ def categoriaSel():
     resultado = []
     exito = True
     try:
-        sql = "SELECT IDCategoria, NomCategoria FROM categoria"
+        sql = "SELECT IDCategoria, NomCategoria FROM categoria;"
         conector = mysql.connect()
         cursor = conector.cursor()
         cursor.execute(sql)
@@ -47,7 +47,7 @@ def categoriaGet(id):
     '''
     exito = True
     try:
-        sql = "SELECT IDCategoria, NomCategoria FROM categoria WHERE IDCategoria = %s"
+        sql = "SELECT IDCategoria, NomCategoria FROM categoria WHERE IDCategoria = %s;"
         conector = mysql.connect()
         cursor = conector.cursor()
         cursor.execute(sql, id)
@@ -101,7 +101,7 @@ def categoriaUpd(id):
     '''
     try:
         __nombreCategoria = request.form["txtNomCategoria"]
-        sql = "UPDATE categoria SET NomCategoria = %s WHERE IDCategoria = %s"
+        sql = "UPDATE categoria SET NomCategoria = %s WHERE IDCategoria = %s;"
         datos = [__nombreCategoria, id]
         conector = mysql.connect()
         cursor = conector.cursor()
