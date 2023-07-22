@@ -173,6 +173,9 @@ def cargarImagenPlatillo(id):
     Returns:
         Retorna la imagen impresa
     """
+    # MODIFICAR
+    # r'/home/f3rn4nd021py/backEnd/upload/img/platillos/'
+    # image_data = open("upload/img/platillos/"+platillo[0]["Imagen"], "rb").read()
     platillo = obtenerPlatillo(id)
     if platillo[1]:
         image_data = open("upload/img/platillos/"+platillo[0]["Imagen"], "rb").read()

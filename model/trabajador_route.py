@@ -1,7 +1,6 @@
 from datetime import datetime
 from os import path, remove
 from flask import Blueprint, jsonify, request, make_response
-
 from util.Connection import Connection
 
 conexion = Connection()
