@@ -17,7 +17,7 @@ def clienteSel():
     resultado = []
     exito = False
     try:
-        sql = "SELECT CodCliente, CorreoCliente, DNI, NomCliente, TelefonoCliente  FROM cliente"
+        sql = "SELECT CodCliente, CorreoCliente, DNI, NomCliente, TelefonoCliente  FROM cliente;"
         conector = mysql.connect()
         cursor = conector.cursor()
         cursor.execute(sql)
@@ -56,7 +56,7 @@ def clienteIns():
         __telefonoCliente = request.form["txtTelefonoCliente"]
 
         access_token = create_access_token(identity=__correoCliente, additional_claims={'cabecera': "valor ejemplo"})
-        sql = "INSERT INTO cliente(CorreoCliente, DNI, NomCliente, PasswordCliente, TelefonoCliente, validarTKN) VALUES (%s, %s, %s, AES_ENCRYPT(%s,%s), %s, %s)"
+        sql = "INSERT INTO cliente(CorreoCliente, DNI, NomCliente, PasswordCliente, TelefonoCliente, validarTKN) VALUES (%s, %s, %s, AES_ENCRYPT(%s,%s), %s, %s);"
         conn = mysql.connect()
         cursor = conn.cursor()
         datos = [__correoCliente, __dni, __nomCliente, __passwordCliente, __passwordCliente, __telefonoCliente, access_token]

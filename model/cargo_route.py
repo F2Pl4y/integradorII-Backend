@@ -27,7 +27,7 @@ def cargoSel(opcion):
     exito = True
     try:
         sql = "SELECT IDCargo, NomCargo, Sueldo FROM cargo"
-        sql += " WHERE IDCargo != 1" if (opcion == 1) else ""
+        sql += " WHERE IDCargo != 1;" if (opcion == 1) else ""
         conector = mysql.connect()
         cursor = conector.cursor()
         cursor.execute(sql)
