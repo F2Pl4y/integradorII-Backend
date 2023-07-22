@@ -189,7 +189,8 @@ def pedidoIns(direccion, total, idcliente, cursor):
         sql = "SELECT crearPedido(%s, %s, %s)"
         cursor.execute(sql, [direccion, total, idcliente])
         resultado = cursor.fetchone()
+        print("FUNCION", resultado)
     except Exception as ex:
         resultado = f"Error: {ex.__str__()}"
         exito = False
-    return [resultado[0], exito]
+    return [resultado[0], exito, resultado]

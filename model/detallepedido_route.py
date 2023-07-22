@@ -91,6 +91,12 @@ def detalleInsert():
         conn = mysql.connect()
         cursor = conn.cursor()
         idpedido = pedidoIns(direccion, total, idcliente, cursor)
+        print("VALORESSSS",direccion)
+        print("VALORESSSS",total)
+        print("VALORESSSS",idcliente)
+        print("VALORESSSS",cursor)
+        print("VALORESSSS",idpedido)
+        print("22222222",idpedido[2])
         if(idpedido[1]):
             for element in carrito:
                 datos = []
