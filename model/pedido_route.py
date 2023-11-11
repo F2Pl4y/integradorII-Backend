@@ -125,7 +125,7 @@ def tablaFactura(codCliente2):
     resultado = {}
     exito = True
     try:
-        sql = "SELECT p.Direccion, p.horarioPedido, v.Fecha, p.EstadoPedido, p.CodPedido FROM pedido p INNER JOIN detallepedido d ON p.CodPedido = d.CodPedido INNER JOIN venta v ON p.IDVenta = v.IDVenta WHERE p.CodCliente = %s GROUP BY p.CodPedido, v.Fecha, p.EstadoPedido ORDER BY MAX(v.Fecha) DESC;"
+        sql = "SELECT p.Direccion, p.horarioPedido, v.Fecha, p.EstadoPedido, p.CodPedido, p.CodCliente FROM pedido p INNER JOIN detallepedido d ON p.CodPedido = d.CodPedido INNER JOIN Venta v ON p.IDVenta = v.IDVenta WHERE p.CodCliente = %s GROUP BY p.CodPedido, v.Fecha, p.EstadoPedido, p.CodCliente ORDER BY CONCAT(v.Fecha, ' ', p.horarioPedido) DESC;"
         conector = mysql.connect()
         cursor = conector.cursor()
         cursor.execute(sql, codCliente2)
@@ -141,7 +141,8 @@ def tablaFactura(codCliente2):
                     "horarioPedido": str(fila[1]),
                     "fecha": fila[2].strftime("%d-%m-%Y"),
                     "estadoPedido": fila[3],
-                    "CodPedido": fila[4]
+                    "CodPedido": fila[4],
+                    "CodCliente": fila[5]
                 }
                 resultado["detallesTabla"].append(datoTabla)
             exito = True

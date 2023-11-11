@@ -91,12 +91,12 @@ def detalleInsert():
         conn = mysql.connect()
         cursor = conn.cursor()
         idpedido = pedidoIns(direccion, total, idcliente, cursor)
-        print("VALORESSSS",direccion)
-        print("VALORESSSS",total)
-        print("VALORESSSS",idcliente)
-        print("VALORESSSS",cursor)
-        print("VALORESSSS",idpedido)
-        print("22222222",idpedido[2])
+        # print("VALORESSSS",direccion)
+        # print("VALORESSSS",total)
+        # print("VALORESSSS",idcliente)
+        # print("VALORESSSS",cursor)
+        # print("VALORESSSS",idpedido)
+        # print("22222222",idpedido[2])
         if(idpedido[1]):
             for element in carrito:
                 datos = []
@@ -116,3 +116,152 @@ def detalleInsert():
         traceback.print_exc()
         mensaje = f"Error: {ex.__str__()}" 
     return jsonify({"resultado":mensaje, "exito": exito})
+
+
+# ------ FINAL PARA PUNTAJE ------
+@detallepedido.route("/puntaje/insdp/", methods = ["POST"])
+def puntajeInsDP():
+    '''
+    Se inserta un cargo Nuevo
+
+    Returns:
+        Un json que tiene mensaje de validacion y el exito
+    '''
+    exito = False
+    try:
+        __miPuntaje = int(request.form["puntaje"])
+        __nombrePlato = request.form["nombrePlato"]
+        __codPlato = request.form["codPlato"]
+        __codPedido = int(request.form["codPedido"])
+
+        # print("__codPedido, __codPlato, __miPuntaje", __codPedido, __codPlato, __miPuntaje)
+        conector = mysql.connect()
+        cursor = conector.cursor()
+        if isEmptyPuntajeInsert(__codPedido, __codPlato) == True:
+            print("PRIMERA FASE APROBADA", isEmptyPuntajeInsert(__codPedido, __codPlato))
+            # print("VACIO----:", __codPlato)
+            # print("PRIMERA FASE APROBADA", isEmptyP untajeInsert(__codPedido, __codPlato))
+            if 0 < __miPuntaje < 6:
+                # print("PASO TO DO")
+                sql = "UPDATE detallepedido dp SET dp.puntaje = %s WHERE dp.CodPedido = %s AND dp.CodigoPlatillo = %s;"
+                datos = [__miPuntaje, __codPedido, __codPlato]
+                cursor.execute(sql, datos)
+                conector.commit()
+                mensaje = "puntaje insertado correctamente"
+                exito = True
+                cursor.close()
+            else:
+                mensaje = "el puntaje debe de ser entre 1 y 5"
+                cursor.close()
+        else:
+            mensaje = "ya se le asigno un puntaje"
+        cursor.close()
+
+        # print("PUNTAJE ES: ", mensaje)
+        # cursor.close()
+    except Exception as e:
+        mensaje = f"Error: {e.__str__()}"
+    return jsonify({"mensaje": mensaje, "exito": exito})
+
+
+def obtenerDatosPuntaje(id):
+    """
+    Obtiene los detalles de un trabajador en base a su ID.
+
+    Args:
+        id: El ID del trabajador que se desea obtener.
+    Returns:
+        Una lista que contiene un diccionario con los detalles del trabajador y el éxito.
+    """
+    exito = True
+    try:
+        sql = "SELECT p.NombrePlatillo FROM detallepedido dp INNER JOIN platillo p ON dp.CodigoPlatillo = p.CodigoPlatillo WHERE dp.CodPedido = %s;"
+        conector = mysql.connect()
+        cursor = conector.cursor()
+        cursor.execute(sql, id)
+        dato = cursor.fetchone()
+        if dato != None:
+            resultado = {
+                "NombrePlatillo": dato[0]
+            }
+        else:
+            resultado = "No se ha encontrado el platillo"
+            exito = False
+        cursor.close()
+    except Exception as ex:
+        resultado = f"Error: {ex.__str__()}"
+        exito = False
+    return [resultado, exito]
+
+
+
+# @cargo.route("/puntaje/sel/", methods=["GET"])
+@detallepedido.route("/puntaje/seldp/<int:idCargo>/", methods=["GET"])
+def trabajadorSelCargoDP(idCargo = None):
+    """
+    Esta Funcion selecciona a todos los trabajadores por id
+    Args: 
+        idcargo: viene ser el id de cargo. (default: None)
+    Returns:
+        Un json que contiene la lista de los trabajadores por idcargo, y el exito
+    """
+    resultado = []
+    exito = True
+    try:
+        conector = mysql.connect()
+        cursor = conector.cursor()
+        sql = "SELECT p.NombrePlatillo, p.CodigoPlatillo FROM detallepedido dp INNER JOIN platillo p ON dp.CodigoPlatillo = p.CodigoPlatillo INNER JOIN pedido pe ON dp.CodPedido = pe.CodPedido"
+        if idCargo != None:
+            sql += " WHERE pe.CodPedido = %s;"
+            cursor.execute(sql, [idCargo])
+        else:
+            cursor.execute(sql)
+        datos = cursor.fetchall()
+        if len(datos) == 0 and idCargo == None:
+            resultado = "No existan datos en la tabla trabajador"
+            exito = False
+        elif len(datos) == 0 and idCargo != None:
+            resultado = f"No existen datos en la tabla trabajador con el cargo {idCargo}"
+            exito = False
+        else:
+            resultado = [{
+                "NombrePlatillo": fila[0],
+                "CodigoPlatillo": fila[1]
+            } for fila in datos]
+        cursor.close()
+    except Exception as ex:
+        resultado = "Ocurrio un error: " + repr(ex)
+        exito = False
+    return jsonify({"resultado": resultado, "exito": exito})
+
+
+# codPedido
+
+# si EXISTEN valores, entonces es Falso
+# si NO EXISTEN valores, es True
+def isEmptyPuntajeInsert(codPedido,codPlato):
+
+    try:
+        conector = mysql.connect()
+        cursor = conector.cursor()
+
+        sql = "SELECT dp.puntaje, p.NombrePlatillo, p.CodigoPlatillo, dp.CodPedido as codigoPedido FROM detallepedido dp INNER JOIN platillo p ON dp.CodigoPlatillo = p.CodigoPlatillo WHERE dp.CodPedido = %s AND dp.CodigoPlatillo = %s;"
+
+        cursor.execute(sql, [codPedido, codPlato])
+        # print("datossss:",codPedido, codPlato, codPedido, codPlato)
+        datos = cursor.fetchone()
+        cursor.close()
+        print("info BD:",datos[0])
+        if datos[0] == None:
+            # print(datos)
+            cursor.close()
+            return True
+        else:
+            # print(datos)
+            cursor.close()
+            return False
+
+    except Exception as ex:
+        # if 'cursor' in locals():
+        #     cursor.close()
+        return False
