@@ -138,7 +138,7 @@ def puntajeInsDP():
         conector = mysql.connect()
         cursor = conector.cursor()
         if isEmptyPuntajeInsert(__codPedido, __codPlato) == True:
-            print("PRIMERA FASE APROBADA", isEmptyPuntajeInsert(__codPedido, __codPlato))
+            # print("PRIMERA FASE APROBADA", isEmptyPuntajeInsert(__codPedido, __codPlato))
             # print("VACIO----:", __codPlato)
             # print("PRIMERA FASE APROBADA", isEmptyP untajeInsert(__codPedido, __codPlato))
             if 0 < __miPuntaje < 6:
