@@ -1,11 +1,15 @@
 from flask import Blueprint, jsonify, request, make_response
-from util.Connection import Connection
 from flask_jwt_extended import create_access_token
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+from util.Connection import Connection
+
+# from flask import _request_ctx_stack
+from flaskext.mysql import MySQL
 
 
-validaciones = Blueprint('validaciones', __name__)
+
+validarLogin = Blueprint('validarLogin', __name__)
 
 conexion = Connection()
 mysql = conexion.mysql
@@ -33,7 +37,7 @@ with open('public_key.pem', 'wb') as f:
     f.write(pem)
 
 # Ruta para el inicio de sesión
-@validaciones.route('/login', methods=['POST'])
+@validarLogin.route('/loginctc', methods=['POST'])
 def login():
     """
     Realiza el proceso de inicio de sesión.
@@ -41,13 +45,13 @@ def login():
     Returns:
         Una respuesta JSON con un token y el estado del inicio de sesión.
     """
-    
-    __correo = request.json.get('CorreoTrabajador')
-    __password = request.json.get('PasswordTrabajador')
-
-    if (validar_credenciales(__correo, __password)):
-        access_token = create_access_token(identity=__correo, additional_claims={'cabecera': "valor ejemplo"})
-        validador = validarTokenCreado(access_token, __correo)
+    __dni = request.json.get('CorreoTrabajador')
+    __pass = request.json.get('PasswordTrabajador')
+    print("VALOR:",__dni)
+    print("VALOR:",__pass)
+    if (validar_credenciales(__dni, __pass)):
+        access_token = create_access_token(identity=__dni, additional_claims={'cabecera': "valor ejemplo"})
+        validador = validarTokenCreado(access_token, __dni)
         if validador:
             return jsonify({"mensaje": access_token, "estado": True})
         else:
@@ -55,17 +59,19 @@ def login():
     else:
         return jsonify({"mensaje": "Correo o contraseña incorrecta", "estado": False})
 
-@validaciones.route('/protected', methods=['GET'])
+@validarLogin.route('/protectedctc', methods=['GET'])
 def protected():
     """
     Accede a una ruta protegida que requiere autenticación.
+
     Returns:
         Una respuesta JSON con el resultado de la consulta y el estado de éxito.
     """
     token = request.headers.get('Authorization').split('cabecera')[1]
     exito = True
     try:
-        sql = "SELECT CorreoTrabajador FROM `trabajador` WHERE validarTKN = %s"
+        # sql = "SELECT CorreoTrabajador FROM `trabajador` WHERE validarTKN = %s"
+        sql = "SELECT dni FROM usuario WHERE validarTKN = %s"
         conector = mysql.connect()
         cursor = conector.cursor()
         cursor.execute(sql, token)
@@ -92,13 +98,13 @@ def validar_credenciales(correo, contraseña):
         Validacion si se encontró al trabajador o no
     """
     try:
-        sql = "SELECT COUNT(*) FROM trabajador WHERE CorreoTrabajador = %s AND PasswordTrabajador = AES_ENCRYPT(%s, %s) AND IDCargo = 1;"
+        # sql = "SELECT COUNT(*) FROM trabajador WHERE CorreoTrabajador = %s AND PasswordTrabajador = AES_ENCRYPT(%s, %s) AND IDCargo = 1;"
+        sql = "SELECT COUNT(*) FROM usuario WHERE dni = %s AND pass = %s AND tipoUser = 1;"
         conector = mysql.connect()
         cursor = conector.cursor()
         datos = (correo, contraseña, contraseña)
         cursor.execute(sql, datos)
         resultado = cursor.fetchone()
-
         return resultado[0] > 0
     except Exception as e:
         return False
@@ -114,7 +120,8 @@ def validarTokenCreado(token, correo):
         correo: El correo del trabajador cuyo token se va a actualizar.
     """
     try:
-        sql = "UPDATE trabajador SET validarTKN = %s WHERE CorreoTrabajador = %s;"
+        # sql = "UPDATE trabajador SET validarTKN = %s WHERE CorreoTrabajador = %s;"
+        sql = "UPDATE usuario SET validarTKN = %s WHERE dni = %s;"
         conector = mysql.connect()
         cursor = conector.cursor()
         datos = (token, correo)
