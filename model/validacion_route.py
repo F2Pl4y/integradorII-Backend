@@ -41,6 +41,7 @@ def login():
     Returns:
         Una respuesta JSON con un token y el estado del inicio de sesión.
     """
+    
     __correo = request.json.get('CorreoTrabajador')
     __password = request.json.get('PasswordTrabajador')
 
@@ -58,7 +59,6 @@ def login():
 def protected():
     """
     Accede a una ruta protegida que requiere autenticación.
-
     Returns:
         Una respuesta JSON con el resultado de la consulta y el estado de éxito.
     """
