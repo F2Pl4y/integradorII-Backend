@@ -5,7 +5,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from util.Connection import Connection
 
 # from flask import _request_ctx_stack
-from flaskext.mysql import MySQL
+# from flaskext.mysql import MySQL
 
 
 
@@ -47,8 +47,9 @@ def login():
     """
     __dni = request.json.get('CorreoTrabajador')
     __pass = request.json.get('PasswordTrabajador')
-    print("VALOR:",__dni)
-    print("VALOR:",__pass)
+    print("VALOR __dni:",__dni)
+    print("VALOR __pass:",__pass)
+    print("validar_credenciales:",validar_credenciales(__dni, __pass))
     if (validar_credenciales(__dni, __pass)):
         access_token = create_access_token(identity=__dni, additional_claims={'cabecera': "valor ejemplo"})
         validador = validarTokenCreado(access_token, __dni)
@@ -97,14 +98,17 @@ def validar_credenciales(correo, contraseña):
     Returns:
         Validacion si se encontró al trabajador o no
     """
+    print("entro a validar_credenciales")
     try:
         # sql = "SELECT COUNT(*) FROM trabajador WHERE CorreoTrabajador = %s AND PasswordTrabajador = AES_ENCRYPT(%s, %s) AND IDCargo = 1;"
         sql = "SELECT COUNT(*) FROM usuario WHERE dni = %s AND pass = %s AND tipoUser = 1;"
         conector = mysql.connect()
         cursor = conector.cursor()
-        datos = (correo, contraseña, contraseña)
+        # datos = (correo, contraseña, contraseña)
+        datos = (correo, contraseña)
         cursor.execute(sql, datos)
         resultado = cursor.fetchone()
+        print("valor del resultado[0]", resultado[0])
         return resultado[0] > 0
     except Exception as e:
         return False
@@ -119,6 +123,8 @@ def validarTokenCreado(token, correo):
         token: El nuevo token a actualizar en la base de datos.
         correo: El correo del trabajador cuyo token se va a actualizar.
     """
+    # print("valor token:", token)
+    # print("valor correo:", correo)
     try:
         # sql = "UPDATE trabajador SET validarTKN = %s WHERE CorreoTrabajador = %s;"
         sql = "UPDATE usuario SET validarTKN = %s WHERE dni = %s;"

@@ -2,5 +2,6 @@ MYSQL_HOST = 'localhost'
 MYSQL_PORT = 3305
 MYSQL_USER = 'root'
 MYSQL_PASSWORD = ''
-MYSQL_DB = 'mrchickenbd'
+# MYSQL_DB = 'mrchickenbd'
+MYSQL_DB = 'bd03012024chapatucarro'
 # MYSQL_DB = 'bdintegrador-final'
