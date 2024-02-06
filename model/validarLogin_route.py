@@ -88,7 +88,8 @@ def protected():
         exito = False
     return jsonify({"resultado": resultado, "exito": exito})
 
-def validar_credenciales(correo, contraseña):
+# def validar_credenciales(dni):
+def validar_credenciales(dni, contra):
     """
     Valida las credenciales de un trabajador en la base de datos.
 
@@ -98,14 +99,19 @@ def validar_credenciales(correo, contraseña):
     Returns:
         Validacion si se encontró al trabajador o no
     """
-    print("entro a validar_credenciales")
+    print("entro a validar_credenciales principal")
     try:
+        # token = request.headers.get('Authorization').split('cabecera')[1]
         # sql = "SELECT COUNT(*) FROM trabajador WHERE CorreoTrabajador = %s AND PasswordTrabajador = AES_ENCRYPT(%s, %s) AND IDCargo = 1;"
         sql = "SELECT COUNT(*) FROM usuario WHERE dni = %s AND pass = %s AND tipoUser = 1;"
+        
+        # sql = "SELECT tipou.nombre FROM usuario JOIN tipou ON usuario.tipoUser = tipou.idTipo WHERE usuario.dni = %s"
+        # sql = "SELECT tipou.nombre FROM usuario JOIN tipou ON usuario.tipoUser = tipou.idTipo WHERE usuario.validarTKN = %s"
+
         conector = mysql.connect()
         cursor = conector.cursor()
-        # datos = (correo, contraseña, contraseña)
-        datos = (correo, contraseña)
+        # datos = (token)
+        datos = (dni, contra)
         cursor.execute(sql, datos)
         resultado = cursor.fetchone()
         print("valor del resultado[0]", resultado[0])
@@ -134,6 +140,33 @@ def validarTokenCreado(token, correo):
         cursor.execute(sql, datos)
         conector.commit()
         return True
+    except Exception as e:
+        return False
+    finally:
+        cursor.close()
+
+
+def validarTipoUserA(correo, contraseña):
+    """
+    Valida las credenciales de un trabajador en la base de datos.
+
+    Args:
+        correo: El correo del trabajador.
+        contraseña: La contraseña del trabajador.
+    Returns:
+        Validacion si se encontró al trabajador o no
+    """
+    print("entro a validar_credenciales")
+    try:
+        sql = "SELECT COUNT(*) FROM usuario WHERE dni = %s AND pass = %s AND tipoUser = 1;"
+        conector = mysql.connect()
+        cursor = conector.cursor()
+        # datos = (correo, contraseña, contraseña)
+        datos = (correo, contraseña)
+        cursor.execute(sql, datos)
+        resultado = cursor.fetchone()
+        print("valor del resultado[0]", resultado[0])
+        return resultado[0] > 0
     except Exception as e:
         return False
     finally:
