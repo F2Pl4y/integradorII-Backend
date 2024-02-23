@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, make_response
 from flask_jwt_extended import create_access_token
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+# from cryptography.hazmat.primitives import serialization
+# from cryptography.hazmat.primitives.asymmetric import rsa
 from util.Connection import Connection
 
 # from flask import _request_ctx_stack
@@ -9,35 +9,15 @@ from util.Connection import Connection
 
 
 
-validarLogin = Blueprint('validarLogin', __name__)
+createViaje = Blueprint('createViaje', __name__)
 
 conexion = Connection()
 mysql = conexion.mysql
 
-private_key = rsa.generate_private_key(
-    public_exponent=65537,
-    key_size=2048
-)
 
-public_key = private_key.public_key()
-
-with open('private_key.pem', 'wb') as f:
-    pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption()
-    )
-    f.write(pem)
-
-with open('public_key.pem', 'wb') as f:
-    pem = public_key.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
-    )
-    f.write(pem)
 
 # Ruta para el inicio de sesión
-@validarLogin.route('/loginctc', methods=['POST'])
+@createViaje.route('/regViaje', methods=['POST'])
 def login():
     """
     Realiza el proceso de inicio de sesión.
@@ -45,22 +25,39 @@ def login():
     Returns:
         Una respuesta JSON con un token y el estado del inicio de sesión.
     """
-    __dni = request.json.get('CorreoTrabajador')
-    __pass = request.json.get('PasswordTrabajador')
-    print("VALOR __dni:",__dni)
-    print("VALOR __pass:",__pass)
-    print("validar_credenciales:",validar_credenciales(__dni, __pass))
-    if (validar_credenciales(__dni, __pass)):
-        access_token = create_access_token(identity=__dni, additional_claims={'cabecera': "valor ejemplo"})
-        validador = validarTokenCreado(access_token, __dni)
-        if validador:
-            return jsonify({"mensaje": access_token, "estado": True})
-        else:
-            return jsonify({"mensaje": "Error al validar token", "estado": False})
+    __viajeA = request.json.get('viajeA')
+    __detViajeA = request.json.get('detViajeA')
+    __viajeB = request.json.get('viajeB')
+    __detViajeB = request.json.get('detViajeB')
+    __datePart = request.json.get('datePart')
+    __timePart = request.json.get('timePart')
+    __carSel = request.json.get('carSel')
+    __asiCant = request.json.get('asiCant')
+    __costPasaje = request.json.get('costPasaje')
+    __pagoType = request.json.get('pagoType')
+    print("__viajeA ", __viajeA)
+    print("__detViajeA ", __detViajeA)
+    print("__viajeB ", __viajeB)
+    print("__detViajeB ", __detViajeB)
+    print("__datePart ", __datePart)
+    print("__timePart ", __timePart)
+    print("__carSel ", __carSel)
+    print("__asiCant ", __asiCant)
+    print("__costPasaje ", __costPasaje)
+    print("__pagoType ", __pagoType)
+    # if (validar_credenciales(__dni, __pass)):
+    if (1==1):
+        print("hola")
+        # access_token = create_access_token(identity=__dni, additional_claims={'cabecera': "valor ejemplo"})
+        # validador = validarTokenCreado(access_token, __dni)
+        # if validador:
+        #     return jsonify({"mensaje": access_token, "estado": True})
+        # else:
+        #     return jsonify({"mensaje": "Error al validar token", "estado": False})
     else:
         return jsonify({"mensaje": "Correo o contraseña incorrecta", "estado": False})
 
-@validarLogin.route('/protectedctc', methods=['GET'])
+@createViaje.route('/protectedctc', methods=['GET'])
 def protected():
     """
     Accede a una ruta protegida que requiere autenticación.
@@ -146,7 +143,7 @@ def validarTokenCreado(token, correo):
         cursor.close()
 
 
-@validarLogin.route('/validarUser', methods=['GET'])
+@createViaje.route('/validarUser', methods=['GET'])
 def validarUser():
     """
     Accede a una ruta protegida que requiere autenticación.
