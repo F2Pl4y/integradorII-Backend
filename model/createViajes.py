@@ -17,8 +17,9 @@ mysql = conexion.mysql
 
 
 # Ruta para el inicio de sesión
-@createViaje.route('/regViaje', methods=['POST'])
+@createViaje.route('/regViaje/', methods=["POST"])
 def login():
+    print("ingreso a viajes")
     """
     Realiza el proceso de inicio de sesión.
 
@@ -47,11 +48,13 @@ def login():
     print("__pagoType ", __pagoType)
     # if (validar_credenciales(__dni, __pass)):
     if (1==1):
-        print("hola")
+        # print("hola")
         # access_token = create_access_token(identity=__dni, additional_claims={'cabecera': "valor ejemplo"})
         # validador = validarTokenCreado(access_token, __dni)
         # if validador:
-        #     return jsonify({"mensaje": access_token, "estado": True})
+            # return jsonify({"mensaje": access_token, "estado": True})
+        
+        return jsonify({"mensaje": "todo OK", "exito": True})
         # else:
         #     return jsonify({"mensaje": "Error al validar token", "estado": False})
     else:
@@ -96,7 +99,7 @@ def validar_credenciales(dni, contra):
     Returns:
         Validacion si se encontró al trabajador o no
     """
-    print("entro a validar_credenciales principal")
+    # print("entro a validar_credenciales principal")
     try:
         # token = request.headers.get('Authorization').split('cabecera')[1]
         # sql = "SELECT COUNT(*) FROM trabajador WHERE CorreoTrabajador = %s AND PasswordTrabajador = AES_ENCRYPT(%s, %s) AND IDCargo = 1;"
@@ -111,7 +114,7 @@ def validar_credenciales(dni, contra):
         datos = (dni, contra)
         cursor.execute(sql, datos)
         resultado = cursor.fetchone()
-        print("valor del resultado[0]", resultado[0])
+        # print("valor del resultado[0]", resultado[0])
         return resultado[0] > 0
     except Exception as e:
         return False
@@ -182,7 +185,7 @@ def validarTipoUserA():
     Returns:
         Validacion si se encontró al trabajador o no
     """
-    print("entro a validar _ credenciales principal")
+    # print("entro a validar _ credenciales principal")
     try:
         token = request.headers.get('Authorization').split('cabecera')[1]
         # sql = "SELECT COUNT(*) FROM trabajador WHERE CorreoTrabajador = %s AND PasswordTrabajador = AES_ENCRYPT(%s, %s) AND IDCargo = 1;"
@@ -197,9 +200,10 @@ def validarTipoUserA():
         # datos = (correo, contraseña)
         cursor.execute(sql, datos)
         resultado = cursor.fetchone()
-        print("valor del resultado[0]", resultado[0])
+        # print("valor del resultado[0]", resultado[0])
         return resultado[0] > 0
     except Exception as e:
         return False
     finally:
         cursor.close()
+
