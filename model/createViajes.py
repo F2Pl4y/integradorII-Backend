@@ -1,5 +1,8 @@
 from flask import Blueprint, jsonify, request, make_response
 from flask_jwt_extended import create_access_token
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from model.validarLogin_route import obtenerDNI
+from datetime import datetime
 # from cryptography.hazmat.primitives import serialization
 # from cryptography.hazmat.primitives.asymmetric import rsa
 from util.Connection import Connection
@@ -7,25 +10,25 @@ from util.Connection import Connection
 # from flask import _request_ctx_stack
 # from flaskext.mysql import MySQL
 
-
-
 createViaje = Blueprint('createViaje', __name__)
-
 conexion = Connection()
 mysql = conexion.mysql
 
-
-
 # Ruta para el inicio de sesión
 @createViaje.route('/regViaje/', methods=["POST"])
+@jwt_required()
 def login():
     print("ingreso a viajes")
-    """
-    Realiza el proceso de inicio de sesión.
+    # Aquí, asumiendo que ya estás dentro de una solicitud protegida por JWT
+    token_jwt = get_jwt_identity()  # Esto te da la identidad del JWT, que has configurado como el DNI
+    dni_usuario = obtenerDNI(token_jwt)  # Usas el DNI para buscar en la base de datos o para la lógica de negocio
 
-    Returns:
-        Una respuesta JSON con un token y el estado del inicio de sesión.
-    """
+    if dni_usuario:
+        # Procede con la lógica de tu negocio usando el DNI del usuario
+        print(f"DNI del usuario: {dni_usuario}")
+    else:
+        # Maneja el caso de que el DNI no se pueda obtener
+        print("No se pudo obtener el DNI del usuario.")
     __viajeA = request.json.get('viajeA')
     __detViajeA = request.json.get('detViajeA')
     __viajeB = request.json.get('viajeB')
@@ -36,38 +39,63 @@ def login():
     __asiCant = request.json.get('asiCant')
     __costPasaje = request.json.get('costPasaje')
     __pagoType = request.json.get('pagoType')
-    print("__viajeA ", __viajeA)
-    print("__detViajeA ", __detViajeA)
-    print("__viajeB ", __viajeB)
-    print("__detViajeB ", __detViajeB)
-    print("__datePart ", __datePart)
-    print("__timePart ", __timePart)
-    print("__carSel ", __carSel)
-    print("__asiCant ", __asiCant)
-    print("__costPasaje ", __costPasaje)
-    print("__pagoType ", __pagoType)
+    __valueTKN = request.json.get('mitkn')
+    __dniValue = getDNI(__valueTKN)
+    # print(f"__viajeA: {__viajeA}, __detViajeA: {__detViajeA}, __viajeB: {__viajeB}, __detViajeB: {__detViajeB}, __datePart: {__datePart}, __timePart: {__timePart}, __carSel: {__carSel}, __asiCant: {__asiCant}, __costPasaje: {__costPasaje}, __pagoType: {__pagoType}, mitkn: {__valueTKN}, DNI: {getDNI(__valueTKN)}")
+
+    # Validaciones
+    fecha_valida = validar_fecha(__datePart)
+    hora_valida = validar_hora(__timePart)
+    carro_valido = validar_entero(__carSel)
+    asientos_validos = validar_entero(__asiCant)
+    costo_valido = validar_numero(__costPasaje)
+    tipo_pago_valido = validar_rango_pago(__pagoType)
+    fechaUnida = juntarHora(__datePart, __timePart)
+
+    # Almacenamiento de las validaciones en un arreglo
+    validaciones = [fecha_valida, hora_valida, carro_valido, asientos_validos, costo_valido, tipo_pago_valido]
+
+    # Validación de que todos los elementos del arreglo son True
+    validacion_total = all(validaciones)
+    print("validacion_total", validacion_total)
+    # Resultados de las validaciones
+    # print(f"Fecha válida: {fecha_valida[1]}")
+    # print(f"Hora válida: {hora_valida[1]}")
+    # print(f"fecha junta: {fechaUnida}")
+    # print(f"Selección de carro válida: {carro_valido}")
+    # print(f"Cantidad de asientos válida: {asientos_validos}")
+    # print(f"Costo de pasaje válido: {costo_valido}")
+    # print(f"Tipo de pago válido: {tipo_pago_valido}")
+    # print(f"valor del dni: {getDNI(__valueTKN)}")
     # if (validar_credenciales(__dni, __pass)):
-    if (1==1):
-        # print("hola")
+    # current_user_dni = get_jwt_identity()
+    if (validacion_total):
+        print("VALIDACIONES APROBADAS")
+        sql = "INSERT INTO rutas (dnifkrutas, puntoInicio, puntoFin, horaPartida, tipoPago, costo, detalleInicio, detalleFin, vehiculo, asientos, estadoViaje) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        datos = [__dniValue, __viajeA, __viajeB, fechaUnida, __pagoType, __costPasaje, __detViajeA, __detViajeB, __carSel, __asiCant, 0]
+        cursor.execute(sql, datos)
+        conn.commit()
+        mensaje = "viaje creado"
+        exito = True
+        cursor.close()
         # access_token = create_access_token(identity=__dni, additional_claims={'cabecera': "valor ejemplo"})
-        # validador = validarTokenCreado(access_token, __dni)
-        # if validador:
-            # return jsonify({"mensaje": access_token, "estado": True})
+        validador = validarTokenCreado(__valueTKN, __dniValue)
+        if validador:
+            return jsonify({"mensaje": mensaje, "estado": exito})
         
-        return jsonify({"mensaje": "todo OK", "exito": True})
+        return jsonify({"mensaje": mensaje, "exito": exito})
         # else:
         #     return jsonify({"mensaje": "Error al validar token", "estado": False})
     else:
-        return jsonify({"mensaje": "Correo o contraseña incorrecta", "estado": False})
+        # return jsonify({"mensaje": "Correo o contraseña incorrecta", "estado": False})
+        # Suponiendo que la inserción es correcta y deseas retornar un mensaje de éxito:
+        return jsonify({"mensaje": "Inserción correcta", "estado": True})
 
 @createViaje.route('/protectedctc', methods=['GET'])
 def protected():
-    """
-    Accede a una ruta protegida que requiere autenticación.
 
-    Returns:
-        Una respuesta JSON con el resultado de la consulta y el estado de éxito.
-    """
     token = request.headers.get('Authorization').split('cabecera')[1]
     exito = True
     try:
@@ -90,16 +118,7 @@ def protected():
 
 # def validar_credenciales(dni):
 def validar_credenciales(dni, contra):
-    """
-    Valida las credenciales de un trabajador en la base de datos.
 
-    Args:
-        correo: El correo del trabajador.
-        contraseña: La contraseña del trabajador.
-    Returns:
-        Validacion si se encontró al trabajador o no
-    """
-    # print("entro a validar_credenciales principal")
     try:
         # token = request.headers.get('Authorization').split('cabecera')[1]
         # sql = "SELECT COUNT(*) FROM trabajador WHERE CorreoTrabajador = %s AND PasswordTrabajador = AES_ENCRYPT(%s, %s) AND IDCargo = 1;"
@@ -122,13 +141,6 @@ def validar_credenciales(dni, contra):
         cursor.close()
 
 def validarTokenCreado(token, correo):
-    """
-    Actualiza el token en la base de datos para el trabajador especificado.
-
-    Parámetros:
-        token: El nuevo token a actualizar en la base de datos.
-        correo: El correo del trabajador cuyo token se va a actualizar.
-    """
     # print("valor token:", token)
     # print("valor correo:", correo)
     try:
@@ -148,12 +160,6 @@ def validarTokenCreado(token, correo):
 
 @createViaje.route('/validarUser', methods=['GET'])
 def validarUser():
-    """
-    Accede a una ruta protegida que requiere autenticación.
-
-    Returns:
-        Una respuesta JSON con el resultado de la consulta y el estado de éxito.
-    """
     token = request.headers.get('Authorization').split('cabecera')[1]
     exito = True
     try:
@@ -176,16 +182,7 @@ def validarUser():
 
 
 def validarTipoUserA():
-    """
-    Valida las credenciales de un trabajador en la base de datos.
 
-    Args:
-        correo: El correo del trabajador.
-        contraseña: La contraseña del trabajador.
-    Returns:
-        Validacion si se encontró al trabajador o no
-    """
-    # print("entro a validar _ credenciales principal")
     try:
         token = request.headers.get('Authorization').split('cabecera')[1]
         # sql = "SELECT COUNT(*) FROM trabajador WHERE CorreoTrabajador = %s AND PasswordTrabajador = AES_ENCRYPT(%s, %s) AND IDCargo = 1;"
@@ -207,3 +204,106 @@ def validarTipoUserA():
     finally:
         cursor.close()
 
+
+
+def getDNI(token):
+    try:
+        # sql = "SELECT CorreoTrabajador FROM `trabajador` WHERE validarTKN = %s"
+        sql = "SELECT dni FROM usuario WHERE validarTKN = %s"
+        conector = mysql.connect()
+        cursor = conector.cursor()
+        cursor.execute(sql, token)
+        dato = cursor.fetchone()
+        if dato is not None:
+            # resultado = {"TKN": dato[0]}
+            resultado = dato[0]
+        else:
+            resultado = "NO TIENES TOKEN"
+        cursor.close()
+    except Exception as ex:
+        resultado = f"Error: {ex.__str__()}"
+    return resultado
+
+def validar_fecha(fecha_str):
+    """Valida que la fecha sea igual o posterior a hoy y la devuelve en formato 'DD-MM-YYYY' si es válida."""
+    try:
+        fecha = datetime.strptime(fecha_str, "%m/%d/%Y")  # Asegurarse que el formato de entrada sea correcto
+        hoy = datetime.now()
+        if fecha.date() >= hoy.date():
+            # return True, fecha.strftime("%d-%m-%Y")  # Devuelve la fecha en el formato deseado
+            return True, fecha.strftime("%Y-%m-%d")  # Devuelve la fecha en el formato deseado
+        else:
+            return False, ""
+    except ValueError as e:
+        return False, str(e)
+
+def validar_hora(hora_str):
+    """Valida que la hora esté en el formato 'HH:MM' y elimina AM o PM si está presente."""
+    try:
+        # Primero intentamos parsear la hora considerando que puede tener AM o PM
+        formatos_posibles = ["%I:%M %p", "%H:%M"]  # Formatos 12 y 24 horas
+        hora_objeto = None
+        for formato in formatos_posibles:
+            try:
+                hora_objeto = datetime.strptime(hora_str, formato)
+                break  # Si el parsing es exitoso, salimos del bucle
+            except ValueError:
+                continue  # Si falla, intentamos con el siguiente formato
+        if hora_objeto is None:
+            return False, "Formato de hora inválido."
+        # Convertimos a formato 24 horas sin AM/PM
+        hora_sin_am_pm = hora_objeto.strftime("%H:%M")
+        print("Hora sin AM/PM:", hora_sin_am_pm)
+        return True, hora_sin_am_pm  # Devolvemos True y la hora ajustada
+    except ValueError:
+        return False, "Formato de hora inválido."
+    
+def juntarHora(fecha, hora):
+    # Unir fecha y hora en un solo string
+    print("segundos valores", validar_fecha(fecha))
+    print("primeros valores", validar_hora(hora))
+    fecha_hora_str = f"{validar_fecha(fecha)[1]} {validar_hora(hora)[1]}"
+
+    # Convertir a objeto datetime
+    fecha_hora_obj = datetime.strptime(fecha_hora_str, "%Y-%m-%d %H:%M")
+
+    return fecha_hora_obj
+
+def validar_entero(valor_str):
+    """Valida que el valor sea un número entero."""
+    return valor_str.isdigit()
+
+def validar_numero(valor_str):
+    """Valida que el valor sea un número (entero o decimal)."""
+    try:
+        float(valor_str)
+        return True
+    except ValueError:
+        return False
+
+# def validar_rango_pago(pago_str):
+#     """Valida que el tipo de pago esté en el rango [1, 2]."""
+#     # print("valorpago", pago_str)
+#     if (1 <= pago <= 2):
+#         pago = int(pago_str)
+#         print("valor de validarRANGOPAGO:", pago)
+#         return pago
+#     else:
+#         print("VALOR CUALQUIERA")
+#     return False
+    
+def validar_rango_pago(pago_str):
+    """Valida que el tipo de pago esté en el rango [1, 2]."""
+    try:
+        pago = int(pago_str)  # Intenta convertir a entero
+        print("valorpago", pago_str)
+        if 1 <= pago <= 2:
+            print("valor de validarRANGOPAGO:", pago)
+            return True  # Si está en el rango, retorna True
+        else:
+            print("VALOR FUERA DE RANGO")  # Informa si está fuera de rango
+            return False
+    except ValueError:
+        # Si la conversión a entero falla, significa que no era un entero válido
+        print("VALOR NO ES UN ENTERO")
+        return False
