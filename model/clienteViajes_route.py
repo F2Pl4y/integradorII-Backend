@@ -3,32 +3,16 @@ from flask_jwt_extended import create_access_token
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from model.validarLogin_route import obtenerDNI
 from datetime import datetime
-# from cryptography.hazmat.primitives import serialization
-# from cryptography.hazmat.primitives.asymmetric import rsa
 from util.Connection import Connection
 
-# from flask import _request_ctx_stack
-# from flaskext.mysql import MySQL
-
-createViaje = Blueprint('createViaje', __name__)
+clienteViaje = Blueprint('clienteViaje', __name__)
 conexion = Connection()
 mysql = conexion.mysql
-
 # Ruta para el inicio de sesión
-@createViaje.route('/regViaje/', methods=["POST"])
+@clienteViaje.route('/regViaje/', methods=["POST"])
 @jwt_required()
 def login():
     try:
-        # # Aquí, asumiendo que ya estás dentro de una solicitud protegida por JWT
-        # token_jwt = get_jwt_identity()  # Esto te da la identidad del JWT, que has configurado como el DNI
-        # dni_usuario = obtenerDNI(token_jwt)  # Usas el DNI para buscar en la base de datos o para la lógica de negocio
-        # print("sacando el dni con obtenerDNI:", dni_usuario)
-        # if dni_usuario:
-        #     # Procede con la lógica de tu negocio usando el DNI del usuario
-        #     print(f"DNI del usuario: {dni_usuario}")
-        # else:
-        #     # Maneja el caso de que el DNI no se pueda obtener
-        #     print("No se pudo obtener el DNI del usuario.")
         __viajeA = request.json.get('viajeA')
         __detViajeA = request.json.get('detViajeA')
         __viajeB = request.json.get('viajeB')
@@ -42,7 +26,6 @@ def login():
         __valueTKN = request.json.get('mitkn')
         __dniValue = getDNI(__valueTKN)
         # print(f"__viajeA: {__viajeA}, __detViajeA: {__detViajeA}, __viajeB: {__viajeB}, __detViajeB: {__detViajeB}, __datePart: {__datePart}, __timePart: {__timePart}, __carSel: {__carSel}, __asiCant: {__asiCant}, __costPasaje: {__costPasaje}, __pagoType: {__pagoType}, mitkn: {__valueTKN}, DNI: {getDNI(__valueTKN)}")
-
         # Validaciones
         fecha_valida = validar_fecha(__datePart)
         hora_valida = validar_hora(__timePart)
@@ -51,24 +34,11 @@ def login():
         costo_valido = validar_numero(__costPasaje)
         tipo_pago_valido = validar_rango_pago(__pagoType)
         fechaUnida = juntarHora(__datePart, __timePart)
-
         # Almacenamiento de las validaciones en un arreglo
         validaciones = [fecha_valida, hora_valida, carro_valido, asientos_validos, costo_valido, tipo_pago_valido]
-
         # Validación de que todos los elementos del arreglo son True
         validacion_total = all(validaciones)
         print("validacion_total", validacion_total)
-        # Resultados de las validaciones
-        # print(f"Fecha válida: {fecha_valida[1]}")
-        # print(f"Hora válida: {hora_valida[1]}")
-        # print(f"fecha junta: {fechaUnida}")
-        # print(f"Selección de carro válida: {carro_valido}")
-        # print(f"Cantidad de asientos válida: {asientos_validos}")
-        # print(f"Costo de pasaje válido: {costo_valido}")
-        # print(f"Tipo de pago válido: {tipo_pago_valido}")
-        # print(f"valor del dni: {getDNI(__valueTKN)}")
-        # if (validar_credenciales(__dni, __pass)):
-        # current_user_dni = get_jwt_identity()
         if (validacion_total):
             print("VALIDACIONES APROBADAS")
             sql = "INSERT INTO rutas (dnifkrutas, puntoInicio, puntoFin, horaPartida, tipoPago, costo, detalleInicio, detalleFin, vehiculo, asientos, estadoViaje) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
@@ -84,7 +54,6 @@ def login():
             validador = validarTokenCreado(__valueTKN, __dniValue)
             if validador:
                 return jsonify({"mensaje": mensaje, "estado": exito})
-            
             return jsonify({"mensaje": mensaje, "exito": exito})
             # else:
             #     return jsonify({"mensaje": "Error al validar token", "estado": False})
@@ -96,7 +65,7 @@ def login():
         # Aquí manejas el error general, puedes ser más específico con el tipo de excepción si lo deseas
         return jsonify({"mensaje": f"Error en el servidor: {str(e)}", "estado": False}), 500
 
-@createViaje.route('/protectedctc', methods=['GET'])
+@clienteViaje.route('/protectedctc', methods=['GET'])
 def protected():
 
     # token = request.headers.get('Authorization').split('cabecera')[1]
@@ -122,15 +91,8 @@ def protected():
 
 # def validar_credenciales(dni):
 def validar_credenciales(dni, contra):
-
     try:
-        # token = request.headers.get('Authorization').split('cabecera')[1]
-        # sql = "SELECT COUNT(*) FROM trabajador WHERE CorreoTrabajador = %s AND PasswordTrabajador = AES_ENCRYPT(%s, %s) AND IDCargo = 1;"
         sql = "SELECT COUNT(*) FROM usuario WHERE dni = %s AND pass = %s AND tipoUser = 1;"
-        
-        # sql = "SELECT tipou.nombre FROM usuario JOIN tipou ON usuario.tipoUser = tipou.idTipo WHERE usuario.dni = %s"
-        # sql = "SELECT tipou.nombre FROM usuario JOIN tipou ON usuario.tipoUser = tipou.idTipo WHERE usuario.validarTKN = %s"
-
         conector = mysql.connect()
         cursor = conector.cursor()
         # datos = (token)
@@ -145,8 +107,6 @@ def validar_credenciales(dni, contra):
         cursor.close()
 
 def validarTokenCreado(token, correo):
-    # print("valor token:", token)
-    # print("valor correo:", correo)
     try:
         # sql = "UPDATE trabajador SET validarTKN = %s WHERE CorreoTrabajador = %s;"
         sql = "UPDATE usuario SET validarTKN = %s WHERE dni = %s;"
@@ -161,8 +121,7 @@ def validarTokenCreado(token, correo):
     finally:
         cursor.close()
 
-
-@createViaje.route('/validarUser', methods=['GET'])
+@clienteViaje.route('/validarUser', methods=['GET'])
 def validarUser():
     token = request.headers.get('Authorization').split('cabecera')[1]
     exito = True
@@ -184,15 +143,9 @@ def validarUser():
         exito = False
     return jsonify({"resultado": resultado, "exito": exito})
 
-
 def validarTipoUserA():
-
     try:
         token = request.headers.get('Authorization').split('cabecera')[1]
-        # sql = "SELECT COUNT(*) FROM trabajador WHERE CorreoTrabajador = %s AND PasswordTrabajador = AES_ENCRYPT(%s, %s) AND IDCargo = 1;"
-        # sql = "SELECT COUNT(*) FROM usuario WHERE dni = %s AND pass = %s AND tipoUser = 1;"
-        
-        # sql = "SELECT tipou.nombre FROM usuario JOIN tipou ON usuario.tipoUser = tipou.idTipo WHERE usuario.dni = %s"
         sql = "SELECT tipou.nombre FROM usuario JOIN tipou ON usuario.tipoUser = tipou.idTipo WHERE usuario.validarTKN = %s"
 
         conector = mysql.connect()
@@ -207,8 +160,6 @@ def validarTipoUserA():
         return False
     finally:
         cursor.close()
-
-
 
 def getDNI(token):
     try:
@@ -267,10 +218,8 @@ def juntarHora(fecha, hora):
     print("segundos valores", validar_fecha(fecha))
     print("primeros valores", validar_hora(hora))
     fecha_hora_str = f"{validar_fecha(fecha)[1]} {validar_hora(hora)[1]}"
-
     # Convertir a objeto datetime
     fecha_hora_obj = datetime.strptime(fecha_hora_str, "%Y-%m-%d %H:%M")
-
     return fecha_hora_obj
 
 def validar_entero(valor_str):
@@ -284,17 +233,6 @@ def validar_numero(valor_str):
         return True
     except ValueError:
         return False
-
-# def validar_rango_pago(pago_str):
-#     """Valida que el tipo de pago esté en el rango [1, 2]."""
-#     # print("valorpago", pago_str)
-#     if (1 <= pago <= 2):
-#         pago = int(pago_str)
-#         print("valor de validarRANGOPAGO:", pago)
-#         return pago
-#     else:
-#         print("VALOR CUALQUIERA")
-#     return False
     
 def validar_rango_pago(pago_str):
     """Valida que el tipo de pago esté en el rango [1, 2]."""

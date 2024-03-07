@@ -106,12 +106,10 @@ def protected():
     exito = True
     print("valor del tokennnnn:", token)
     try:
-        print("ingrese al try")
         # Extrayendo 'dni' de las reclamaciones adicionales
         # dni_claim = get_jwt_identity().get('dni')
         # print("valor del dni_claim", dni_claim)
         
-        print("debajo del claim")
         # sql = "SELECT CorreoTrabajador FROM `trabajador` WHERE validarTKN = %s"
         sql = "SELECT dni FROM usuario WHERE validarTKN = %s"
         conector = mysql.connect()
