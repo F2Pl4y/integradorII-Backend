@@ -104,7 +104,7 @@ def protected():
     token = request.headers.get('Authorization', '').replace('Bearer ', '').strip()
     # token2 = request.headers.get('Authorization').split('cabecera')[1]
     exito = True
-    print("valor del tokennnnn:", token)
+    # print("valor del tokennnnn:", token)
     try:
         # Extrayendo 'dni' de las reclamaciones adicionales
         # dni_claim = get_jwt_identity().get('dni')

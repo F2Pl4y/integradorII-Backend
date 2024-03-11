@@ -15,7 +15,7 @@ conexion = Connection()
 mysql = conexion.mysql
 
 # Ruta para el inicio de sesión
-@createViaje.route('/regViaje/', methods=["POST"])
+@createViaje.route('/srchViaje/', methods=["POST"])
 @jwt_required()
 def login():
     try:
@@ -96,29 +96,29 @@ def login():
         # Aquí manejas el error general, puedes ser más específico con el tipo de excepción si lo deseas
         return jsonify({"mensaje": f"Error en el servidor: {str(e)}", "estado": False}), 500
 
-@createViaje.route('/protectedctc', methods=['GET'])
-def protected():
+# @createViaje.route('/protectedctc', methods=['GET'])
+# def protected():
 
-    # token = request.headers.get('Authorization').split('cabecera')[1]
-    token = request.headers.get('Authorization', '').replace('Bearer ', '').strip()
-    exito = True
-    try:
-        # sql = "SELECT CorreoTrabajador FROM `trabajador` WHERE validarTKN = %s"
-        sql = "SELECT dni FROM usuario WHERE validarTKN = %s"
-        conector = mysql.connect()
-        cursor = conector.cursor()
-        cursor.execute(sql, token)
-        dato = cursor.fetchone()
-        if dato is not None:
-            resultado = {"TKN": dato[0]}
-        else:
-            resultado = "NO TIENES TOKEN"
-            exito = False
-        cursor.close()
-    except Exception as ex:
-        resultado = f"Error: {ex.__str__()}"
-        exito = False
-    return jsonify({"resultado": resultado, "exito": exito})
+#     # token = request.headers.get('Authorization').split('cabecera')[1]
+#     token = request.headers.get('Authorization', '').replace('Bearer ', '').strip()
+#     exito = True
+#     try:
+#         # sql = "SELECT CorreoTrabajador FROM `trabajador` WHERE validarTKN = %s"
+#         sql = "SELECT dni FROM usuario WHERE validarTKN = %s"
+#         conector = mysql.connect()
+#         cursor = conector.cursor()
+#         cursor.execute(sql, token)
+#         dato = cursor.fetchone()
+#         if dato is not None:
+#             resultado = {"TKN": dato[0]}
+#         else:
+#             resultado = "NO TIENES TOKEN"
+#             exito = False
+#         cursor.close()
+#     except Exception as ex:
+#         resultado = f"Error: {ex.__str__()}"
+#         exito = False
+#     return jsonify({"resultado": resultado, "exito": exito})
 
 # def validar_credenciales(dni):
 def validar_credenciales(dni, contra):

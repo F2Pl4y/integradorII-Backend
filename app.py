@@ -46,12 +46,14 @@ from util.Aplication import Aplication
 from flask_jwt_extended import JWTManager
 from model.validarLogin_route import validarLogin
 from model.createViajes import createViaje
+from model.clienteViajes_route import clienteViaje
 
 aplication = Aplication()
 # app = Aplication().app
 app = aplication.app
 app.register_blueprint(validarLogin)
 app.register_blueprint(createViaje)
+app.register_blueprint(clienteViaje)
 
 jwt = JWTManager(app)
 app.config['SECRET_KEY'] = 'secretito'
