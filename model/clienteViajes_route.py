@@ -45,7 +45,7 @@ def login():
         exito = True
         try:
             # sql = "SELECT idRuta, puntoInicio, puntoFin, horaPartida, costo, asientos FROM rutas WHERE estadoViaje = 0;"
-            sql = "SELECT idRuta, puntoInicio, puntoFin, horaPartida, costo, asientos FROM rutas WHERE estadoViaje = 0 AND puntoInicio LIKE %s AND puntoFin LIKE %s AND DATE(horaPartida) = %s ORDER BY 1 ASC;"
+            sql = "SELECT idRuta, puntoInicio, puntoFin, horaPartida, costo, asientos FROM rutas WHERE estadoViaje = 0 AND puntoInicio COLLATE utf8_general_ci LIKE %s AND puntoFin COLLATE utf8_general_ci LIKE %s AND DATE(horaPartida) = %s ORDER BY 1 ASC;"
             conector = mysql.connect()
             cursor = conector.cursor()
             # datos = ('%' + __valorOrigen + '%', '%' + __valorDestino + '%', f"'"+ fecha_formateada + f"'")
@@ -75,31 +75,10 @@ def login():
         # Aquí manejas el error general, puedes ser más específico con el tipo de excepción si lo deseas
         return jsonify({"mensaje": f"Error en el servidor: {str(e)}", "estado": False}), 500
 
-# @clienteViaje.route('/protectedctc', methods=['GET'])
-# @jwt_required()
-# @cross_origin()
-# def protected():
-
-#     # token = request.headers.get('Authorization').split('cabecera')[1]
-#     token = request.headers.get('Authorization', '').replace('Bearer ', '').strip()
-#     exito = True
-#     try:
-#         # sql = "SELECT CorreoTrabajador FROM `trabajador` WHERE validarTKN = %s"
-#         sql = "SELECT dni FROM usuario WHERE validarTKN = %s"
-#         conector = mysql.connect()
-#         cursor = conector.cursor()
-#         cursor.execute(sql, token)
-#         dato = cursor.fetchone()
-#         if dato is not None:
-#             resultado = {"TKN": dato[0]}
-#         else:
-#             resultado = "NO TIENES TOKEN"
-#             exito = False
-#         cursor.close()
-#     except Exception as ex:
-#         resultado = f"Error: {ex.__str__()}"
-#         exito = False
-#     return jsonify({"resultado": resultado, "exito": exito})
+@clienteViaje.route('/detalleViaje/get/<int:id>', methods=['GET'])
+def detViajeGet(id):
+    resultado = obtenerDetViaje(id)
+    return jsonify({"resultado": resultado[0], "exito": resultado[1]})
 
 # def validar_credenciales(dni):
 def validar_credenciales(dni, contra):
@@ -261,3 +240,30 @@ def validar_rango_pago(pago_str):
         # Si la conversión a entero falla, significa que no era un entero válido
         print("VALOR NO ES UN ENTERO")
         return False
+    
+def obtenerDetViaje(id):
+    exito = True
+    try:
+        sql = "SELECT puntoInicio, detalleInicio, puntoFin, detalleFin, horaPartida, costo, asientos FROM rutas WHERE estadoViaje = 0 AND idRuta = %s;"
+        conector = mysql.connect()
+        cursor = conector.cursor()
+        cursor.execute(sql, (id,))  # Asegúrate de pasar id como una tupla
+        dato = cursor.fetchone()
+        if dato:
+            resultado = {
+                "inicioViaje": dato[0],
+                "detalle1Viaje": dato[1],
+                "finViaje": dato[2],
+                "detalle2Viaje": dato[3],
+                "hora": dato[4],
+                "costo": dato[5],
+                "asientos": dato[6]
+            }
+        else:
+            resultado = "sin datos"
+            exito = False
+        cursor.close()
+    except Exception as ex:
+        resultado = f"Error: {ex.__str__()}"
+        exito = False
+    return [resultado, exito]
