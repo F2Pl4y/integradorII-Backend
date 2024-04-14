@@ -68,15 +68,18 @@ with open('public_key.pem', 'wb') as f:
 @validarLogin.route('/loginctc', methods=['POST'])
 @cross_origin()
 def login():
-    try:
+    try:    
+        print("ENTRAMOS AL LOGINCTC")
         __dni = request.json.get('dniUser')
         __pass = request.json.get('PasswordTrabajador')
 
         if validar_credenciales(__dni, __pass):
+            print("ENTRAMOS AL validar_credenciales")
             access_token = create_access_token(identity=__dni)  # DNI como identidad del token
             print("access_token")
             print(access_token)
             validador = validarTokenCreado(access_token, __dni)
+            print("VALOR DEL VALIDADOR:", validador)
             # return jsonify({"mensaje": access_token, "estado": True})
             if validador:
                 return jsonify({"mensaje": access_token, "estado": True})
@@ -131,7 +134,6 @@ def protected():
         # print("Reclamaciones del token:", get_jwt_identity())
         # dni_claim = get_jwt_identity().get('dni')
         # print("Valor del dni_claim:", dni_claim)
-
     except Exception as ex:
         resultado = f"Error: {ex.__str__()}"
         print(f"Error: {ex}")
@@ -145,7 +147,8 @@ def validar_credenciales(dni, contra):
     try:
         # token = request.headers.get('Authorization').split('cabecera')[1]
         # sql = "SELECT COUNT(*) FROM trabajador WHERE CorreoTrabajador = %s AND PasswordTrabajador = AES_ENCRYPT(%s, %s) AND IDCargo = 1;"
-        sql = "SELECT COUNT(*) FROM usuario WHERE dni = %s AND pass = %s AND tipoUser = 1;"
+        # sql = "SELECT COUNT(*) FROM usuario WHERE dni = %s AND pass = %s AND tipoUser = 1;"
+        sql = "SELECT COUNT(*) FROM usuario WHERE dni = %s AND pass = %s;"
         # sql = "SELECT tipou.nombre FROM usuario JOIN tipou ON usuario.tipoUser = tipou.idTipo WHERE usuario.dni = %s"
         # sql = "SELECT tipou.nombre FROM usuario JOIN tipou ON usuario.tipoUser = tipou.idTipo WHERE usuario.validarTKN = %s"
         conector = mysql.connect()

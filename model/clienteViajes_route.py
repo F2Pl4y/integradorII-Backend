@@ -52,8 +52,8 @@ def login():
             datosSQL = ('%' + __valorOrigen + '%', '%' + __valorDestino + '%', fecha_formateada)
             cursor.execute(sql, datosSQL)
             datosSQL = cursor.fetchall()
-            print("VALORES DE DATOS:", datosSQL)
-            print("VALOR DEL SQL:", sql)
+            # print("VALORES DE DATOS:", datosSQL)
+            # print("VALOR DEL SQL:", sql)
             if len(datosSQL) == 0:
                 resultado = f"no info"
                 exito = False
@@ -244,7 +244,7 @@ def validar_rango_pago(pago_str):
 def obtenerDetViaje(id):
     exito = True
     try:
-        sql = "SELECT puntoInicio, detalleInicio, puntoFin, detalleFin, horaPartida, costo, asientos FROM rutas WHERE estadoViaje = 0 AND idRuta = %s;"
+        sql = "SELECT puntoInicio, detalleInicio, puntoFin, detalleFin, horaPartida, costo, asientos, vehiculo FROM rutas WHERE estadoViaje = 0 AND idRuta = %s;"
         conector = mysql.connect()
         cursor = conector.cursor()
         cursor.execute(sql, (id,))  # Asegúrate de pasar id como una tupla
@@ -257,7 +257,8 @@ def obtenerDetViaje(id):
                 "detalle2Viaje": dato[3],
                 "hora": dato[4],
                 "costo": dato[5],
-                "asientos": dato[6]
+                "asientos": dato[6],
+                "vehiculo": dato[7]
             }
         else:
             resultado = "sin datos"
