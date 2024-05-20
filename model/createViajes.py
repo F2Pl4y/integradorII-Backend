@@ -2,10 +2,9 @@ from flask import Blueprint, jsonify, request, make_response
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from model.validarLogin_route import obtenerDNI
-from datetime import datetime
+# from datetime import datetime
 from model.validaciones import *
 from util.Connection import Connection
-
 
 createViaje = Blueprint('createViaje', __name__)
 conexion = Connection()
@@ -70,6 +69,7 @@ def regViaje():
         # Aquí manejas el error general, puedes ser más específico con el tipo de excepción si lo deseas
         return jsonify({"mensaje": f"Error en el servidor: {str(e)}", "estado": False}), 500
 
+
 @createViaje.route('/selVehic/', methods=['GET'])
 @jwt_required()
 def selVehic():
@@ -100,35 +100,6 @@ def selVehic():
         exito = False
     return jsonify({"resultado": resultado, "exito": exito})
 
-def validar_credenciales(dni, contra):
-    try:
-        sql = "SELECT COUNT(*) FROM usuario WHERE dni = %s AND pass = %s AND tipoUser = 1;"
-        conector = mysql.connect()
-        cursor = conector.cursor()
-        datos = (dni, contra)
-        cursor.execute(sql, datos)
-        resultado = cursor.fetchone()
-        return resultado[0] > 0
-    except Exception as e:
-        print(f"Error: {e.__str__()}")
-        return False
-    finally:
-        cursor.close()
-
-def validarTokenCreado(token, correo):
-    try:
-        sql = "UPDATE usuario SET validarTKN = %s WHERE dni = %s;"
-        conector = mysql.connect()
-        cursor = conector.cursor()
-        datos = (token, correo)
-        cursor.execute(sql, datos)
-        conector.commit()
-        return True
-    except Exception as e:
-        print(f"Error: {e.__str__()}")
-        return False
-    finally:
-        cursor.close()
 
 @createViaje.route('/validarUser', methods=['GET'])
 def validarUser():
@@ -151,6 +122,116 @@ def validarUser():
         exito = False
     return jsonify({"resultado": resultado, "exito": exito})
 
+
+
+@createViaje.route('/selViaUserIna/', methods=['GET'])
+@jwt_required()
+def selViaUserIna():
+    __valueDNI = get_jwt_identity()
+    print("Identidad DEL VALORRRRRR:", __valueDNI)
+    exito = True
+    try:
+        # sql = "SELECT * FROM viajes WHERE dnifkviajes = %s AND estadoviaje = 1;"
+        sql = "SELECT puntoInicio, puntoFin, horaPartida, costo FROM viajes WHERE dnifkviajes = %s AND estadoviaje = 1;"
+        conector = mysql.connect()
+        cursor = conector.cursor()
+        cursor.execute(sql, __valueDNI)
+        dato = cursor.fetchall()
+        if len(dato) == 0:
+            resultado = f"no info"
+            exito = False
+        else:
+            # print("VALOR DEL DATO:", dato)
+            # resultado = dato
+            resultado = [{
+                "inicio": fila[0],
+                "final": fila[1],
+                "fechaPart": fila[2],
+                # "horaPart": fila[3],
+                "monto": fila[3]
+            } for fila in dato]
+            exito = True
+        cursor.close()
+    except Exception as ex:
+        resultado = f"Excepcion: {ex.__str__()}"
+        print("valor del resultado:", resultado)
+        exito = False
+    return jsonify({"resultado": resultado, "exito": exito})
+
+@createViaje.route('/selViaUserAct/', methods=['GET'])
+@jwt_required()
+def selViaUserAct():
+    __valueDNI = get_jwt_identity()
+    print("Identidad DEL VALORRRRRR:", __valueDNI)
+    exito = True
+    try:
+        sql = "SELECT puntoInicio, puntoFin, horaPartida, costo FROM viajes WHERE dnifkviajes = %s AND estadoviaje = 0;"
+        conector = mysql.connect()
+        cursor = conector.cursor()
+        cursor.execute(sql, __valueDNI)
+        dato = cursor.fetchall()
+        if len(dato) == 0:
+            resultado = f"no info"
+            exito = False
+        else:
+            # print("VALOR DEL DATO:", dato)
+            # resultado = dato
+            resultado = [{
+                "inicio": fila[0],
+                "final": fila[1],
+                "fechaPart": fila[2],
+                # "horaPart": fila[3],
+                "monto": fila[3]
+            } for fila in dato]
+            exito = True
+        cursor.close()
+    except Exception as ex:
+        resultado = f"Excepcion: {ex.__str__()}"
+        print("valor del resultado:", resultado)
+        exito = False
+    return jsonify({"resultado": resultado, "exito": exito})
+
+
+
+
+
+
+
+
+
+
+def validar_credenciales(dni, contra):
+    try:
+        sql = "SELECT COUNT(*) FROM usuario WHERE dni = %s AND pass = %s AND tipoUser = 1;"
+        conector = mysql.connect()
+        cursor = conector.cursor()
+        datos = (dni, contra)
+        cursor.execute(sql, datos)
+        resultado = cursor.fetchone()
+        return resultado[0] > 0
+    except Exception as e:
+        print(f"Error: {e.__str__()}")
+        return False
+    finally:
+        cursor.close()
+
+
+def validarTokenCreado(token, correo):
+    try:
+        sql = "UPDATE usuario SET validarTKN = %s WHERE dni = %s;"
+        conector = mysql.connect()
+        cursor = conector.cursor()
+        datos = (token, correo)
+        cursor.execute(sql, datos)
+        conector.commit()
+        return True
+    except Exception as e:
+        print(f"Error: {e.__str__()}")
+        return False
+    finally:
+        cursor.close()
+
+
 def validarTipoUserA():
     try:
         token = request.headers.get('Authorization').split('cabecera')[1]
@@ -167,6 +248,7 @@ def validarTipoUserA():
         return False
     finally:
         cursor.close()
+
 
 def getDNI(token):
     try:

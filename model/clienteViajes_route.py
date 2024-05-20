@@ -13,9 +13,7 @@ mysql = conexion.mysql
 @clienteViaje.route('/selViaje/', methods=["POST"])
 @jwt_required()
 def login():
-    print("ESTOY UN PASO ANTES EL TRY")
     try:
-        print("INGRESE AL TRY")
         __valorOrigen = request.json.get('jsonOrigen')
         __valorDestino = request.json.get('jsonDestino')
         __valorFecha = request.json.get('jsonFecha')
@@ -24,17 +22,16 @@ def login():
         print("__valorFecha:", __valorFecha)
         # Primero, convertimos la cadena a un objeto datetime usando el formato correcto
         fecha_obj = datetime.strptime(__valorFecha, "%m/%d/%Y")
-
         # Luego, lo convertimos al formato deseado
         fecha_formateada = fecha_obj.strftime("%Y-%m-%d")
-
         print("__valorFecha Formateada:", fecha_formateada)
         print("Formateada:", fecha_formateada)
         # fecha_añoMesDia = datetime.strptime(__valorFecha, "%d/%m/%Y")
         # fecha_añoMesDia = fecha_añoMesDia.date()
         # print("__valorFechaCAMBIADA:", fecha_formateada)
         __valueTKN = request.json.get('mitkn')
-        # __dniValue = getDNI(__valueTKN)
+        __dniValue = getDNI(__valueTKN)
+        print("valor DNI en selViaje:", __dniValue)
         # Almacenamiento de las validaciones en un arreglo
         # validaciones = [fecha_valida, hora_valida, carro_valido, asientos_validos, costo_valido, tipo_pago_valido]
         validaciones = [1]
@@ -45,11 +42,11 @@ def login():
         exito = True
         try:
             # sql = "SELECT idRuta, puntoInicio, puntoFin, horaPartida, costo, asientos FROM rutas WHERE estadoViaje = 0;"
-            sql = "SELECT idRuta, puntoInicio, puntoFin, horaPartida, costo, asientos FROM rutas WHERE estadoViaje = 0 AND puntoInicio COLLATE utf8_general_ci LIKE %s AND puntoFin COLLATE utf8_general_ci LIKE %s AND DATE(horaPartida) = %s ORDER BY 1 ASC;"
+            sql = "SELECT idRuta, puntoInicio, puntoFin, horaPartida, costo, asientos FROM rutas WHERE estadoViaje = 0 AND puntoInicio COLLATE utf8_general_ci LIKE %s AND puntoFin COLLATE utf8_general_ci LIKE %s AND DATE(horaPartida) = %s AND dnifkrutas <> %s ORDER BY 1 ASC;"
             conector = mysql.connect()
             cursor = conector.cursor()
             # datos = ('%' + __valorOrigen + '%', '%' + __valorDestino + '%', f"'"+ fecha_formateada + f"'")
-            datosSQL = ('%' + __valorOrigen + '%', '%' + __valorDestino + '%', fecha_formateada)
+            datosSQL = ('%' + __valorOrigen + '%', '%' + __valorDestino + '%', fecha_formateada, __dniValue)
             cursor.execute(sql, datosSQL)
             datosSQL = cursor.fetchall()
             # print("VALORES DE DATOS:", datosSQL)
@@ -169,82 +166,11 @@ def getDNI(token):
     except Exception as ex:
         resultado = f"Error: {ex.__str__()}"
     return resultado
-
-def validar_fecha(fecha_str):
-    """Valida que la fecha sea igual o posterior a hoy y la devuelve en formato 'DD-MM-YYYY' si es válida."""
-    try:
-        fecha = datetime.strptime(fecha_str, "%m/%d/%Y")  # Asegurarse que el formato de entrada sea correcto
-        hoy = datetime.now()
-        if fecha.date() >= hoy.date():
-            # return True, fecha.strftime("%d-%m-%Y")  # Devuelve la fecha en el formato deseado
-            return True, fecha.strftime("%Y-%m-%d")  # Devuelve la fecha en el formato deseado
-        else:
-            return False, ""
-    except ValueError as e:
-        return False, str(e)
-
-def validar_hora(hora_str):
-    """Valida que la hora esté en el formato 'HH:MM' y elimina AM o PM si está presente."""
-    try:
-        # Primero intentamos parsear la hora considerando que puede tener AM o PM
-        formatos_posibles = ["%I:%M %p", "%H:%M"]  # Formatos 12 y 24 horas
-        hora_objeto = None
-        for formato in formatos_posibles:
-            try:
-                hora_objeto = datetime.strptime(hora_str, formato)
-                break  # Si el parsing es exitoso, salimos del bucle
-            except ValueError:
-                continue  # Si falla, intentamos con el siguiente formato
-        if hora_objeto is None:
-            return False, "Formato de hora inválido."
-        # Convertimos a formato 24 horas sin AM/PM
-        hora_sin_am_pm = hora_objeto.strftime("%H:%M")
-        print("Hora sin AM/PM:", hora_sin_am_pm)
-        return True, hora_sin_am_pm  # Devolvemos True y la hora ajustada
-    except ValueError:
-        return False, "Formato de hora inválido."
-    
-def juntarHora(fecha, hora):
-    # Unir fecha y hora en un solo string
-    print("segundos valores", validar_fecha(fecha))
-    print("primeros valores", validar_hora(hora))
-    fecha_hora_str = f"{validar_fecha(fecha)[1]} {validar_hora(hora)[1]}"
-    # Convertir a objeto datetime
-    fecha_hora_obj = datetime.strptime(fecha_hora_str, "%Y-%m-%d %H:%M")
-    return fecha_hora_obj
-
-def validar_entero(valor_str):
-    """Valida que el valor sea un número entero."""
-    return valor_str.isdigit()
-
-def validar_numero(valor_str):
-    """Valida que el valor sea un número (entero o decimal)."""
-    try:
-        float(valor_str)
-        return True
-    except ValueError:
-        return False
-    
-def validar_rango_pago(pago_str):
-    """Valida que el tipo de pago esté en el rango [1, 2]."""
-    try:
-        pago = int(pago_str)  # Intenta convertir a entero
-        print("valorpago", pago_str)
-        if 1 <= pago <= 2:
-            print("valor de validarRANGOPAGO:", pago)
-            return True  # Si está en el rango, retorna True
-        else:
-            print("VALOR FUERA DE RANGO")  # Informa si está fuera de rango
-            return False
-    except ValueError:
-        # Si la conversión a entero falla, significa que no era un entero válido
-        print("VALOR NO ES UN ENTERO")
-        return False
     
 def obtenerDetViaje(id):
     exito = True
     try:
-        sql = "SELECT puntoInicio, detalleInicio, puntoFin, detalleFin, horaPartida, costo, asientos, vehiculo FROM rutas WHERE estadoViaje = 0 AND idRuta = %s;"
+        sql = "SELECT puntoInicio, detalleInicio, puntoFin, detalleFin, horaPartida, costo, asientos, vehiculo, tipoPago FROM rutas WHERE estadoViaje = 0 AND idRuta = %s;"
         conector = mysql.connect()
         cursor = conector.cursor()
         cursor.execute(sql, (id,))  # Asegúrate de pasar id como una tupla
@@ -258,7 +184,8 @@ def obtenerDetViaje(id):
                 "hora": dato[4],
                 "costo": dato[5],
                 "asientos": dato[6],
-                "vehiculo": dato[7]
+                "vehiculo": dato[7],
+                "tPago": dato[8]
             }
         else:
             resultado = "sin datos"
