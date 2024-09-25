@@ -191,15 +191,6 @@ def selViaUserAct():
         exito = False
     return jsonify({"resultado": resultado, "exito": exito})
 
-
-
-
-
-
-
-
-
-
 def validar_credenciales(dni, contra):
     try:
         sql = "SELECT COUNT(*) FROM usuario WHERE dni = %s AND pass = %s AND tipoUser = 1;"
